@@ -7,6 +7,7 @@ type vector = float list;;
 
 (* Exception for Dimension Error*)
 exception DimensionError;;
+exception ZeroDIvisionError;;
 
 (* create : int -> float  -> vector // (create n x) creates an n-dimensional vector containing value x, i.e. [x, ..., x]; raise  DimensionError if n < 1*)
 
@@ -71,11 +72,18 @@ let rec inv (v:vector) : vector = List.map (fun x -> -.x) v;;
 let length (v:vector) : float = sqrt (dot_prod v v);;
 
 (*angle: vector -> vector -> float // given vectors v1 and v2 find the (smaller) angle between them in radians. *)
-let angle (v1:vector) (v2:vector) : float = 
-  let dot = dot_prod v1 v2 in
-  let len1 = length v1 in
-  let len2 = length v2 in
-  acos (dot /. (len1 *. len2));;
+
+let angle (v1: vector) (v2: vector) : float = 
+  if is_zero v1 || is_zero v2 then raise ZeroDIvisionError
+  else
+    let dot = dot_prod v1 v2 in
+    let len1 = length v1 in
+    let len2 = length v2 in
+    (* Clamp the value to avoid floating-point errors in acos *)
+    let cos_theta = dot /. (len1 *. len2) in
+    let cos_theta_clamped = min 1.0 (max (-1.0) cos_theta) in
+    acos cos_theta_clamped
+
 
 (* CORRECTNESS PROOFS FOR ALL FUNCTIONS*)
 
