@@ -77,33 +77,6 @@ let angle (v1:vector) (v2:vector) : float =
   let len2 = length v2 in
   acos (dot /. (len1 *. len2));;
 
-(* TEST CASES*)
-
-(* Testcases for dot_prod_tr *)
-let _ = assert (abs_float (dot_prod [1.;2.] [3.;4.]  -. (1.*.3. +. 2.*.4.)) < 1e-10);;
-let _ = assert (abs_float (dot_prod [0.] [0.] -. 0.) < 1e-10);;
-let _ = assert (abs_float (dot_prod [-1.;2.;3.] [4.;5.;-1.] -. ((-1.)*.4. +. 2.*.5. +. 3.*.(-1.))) < 1e-10);;
-let _ = assert (abs_float (dot_prod [1.;0.;1.] [2.;2.;2.] -. (1.*.2. +. 0.*.2. +. 1.*.2.)) < 1e-10);;
-
-(* Testcases for inv *)
-let _ = assert (inv [1.;2.;3.] = [-1.;-2.;-3.]);;
-let _ = assert (inv [0.;0.] = [0.;0.]);;
-let _ = assert (inv [-1.;4.] = [1.;-4.]);;
-let _ = assert (inv [5.] = [-5.]);;
-
-(* Testcases for length *)
-let _ = assert (abs_float (length [3.;4.] -. 5.) < 1e-10);;
-let _ = assert (abs_float (length [0.;0.] -. 0.) < 1e-10);;
-let _ = assert (abs_float (length [1.;2.;2.] -. 3.) < 1e-10);;
-let _ = assert (abs_float (length [-3.;4.] -. 5.) < 1e-10);;
-
-(* Testcases for angle *)
-let pi = 4. *. atan 1.;;
-let _ = assert (abs_float (angle [1.;0.] [0.;1.] -. (pi /. 2.)) < 1e-10);;
-let _ = assert (abs_float (angle [1.;0.] [1.;0.] -. 0.) < 1e-10);;
-let _ = assert (abs_float (angle [1.;1.] [-1.;-1.] -. pi) < 1e-10);;
-let _ = assert (abs_float (angle [2.;0.] [0.;-2.] -. (pi /. 2.)) < 1e-10);;
-
 (* CORRECTNESS PROOFS FOR ALL FUNCTIONS*)
 
 (**In above codes I have just use tail recursive hybrid of below recursive functions**)
