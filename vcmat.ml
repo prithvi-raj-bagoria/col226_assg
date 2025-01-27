@@ -81,7 +81,7 @@ let rec inv (v:vector) : vector =
   List.map (fun x -> -.x) v;;
 
 (*length: vector -> float // return the length of a given vector v*)
-let length (v:vector) : float = sqrt (dot_prod v v);;
+let length (v:vector) : float = sqrt (dot_prod v v);; (* I have provided the correctness of this property in three extra properties*)
 
 (*angle: vector -> vector -> float // given vectors v1 and v2 find the (smaller) angle between them in radians. *)
 
@@ -599,5 +599,127 @@ To Prove : (Scalar product combination)  b.(c.v) = (b.c).v or scale b ( scale c 
                                     = [(b*c)*x]::( scale (b*c) v ) // By Inductive Hypothesis
                                     = scale (b*c) x::v // By definition of scale
     Hence n+1 holds true  
+
+*)
+
+(* (18)
+
+To Prove : (Scalar sum-product distribution)  (b + c).v = b.v + c.v or scale (b + c) v = addv (scale b v) (scale c v) for all v in vectors and b,c in floats with v of dimension n
+
+  Base Case : n=1 then v=[x]
+    scale (b+c) [x] = [(b+c)*x] // By correctness of scale
+                    = [b*x + c*x] // By arithmetic
+                    = addv [b*x] [c*x] // By definition and correctness of addv
+                    = addv (scale b [x]) (scale c [x]) // By definition of scale
+    Hence n=1 holds true
+
+  Inductive Step : n>1
+  Inductive Hypothesis : Assume scale (b + c) v = addv (scale b v) (scale c v) for all v in vectors and b,c in floats with v of dimension n
+
+  scale (b+c) x::v = [(b+c)*x]::scale (b+c) v // By definition of scale
+                  = [b*x + c*x]::(addv (scale b v) (scale c v)) // By Inductive Hypothesis and arithmetic distributive law
+                  = addv [b*x]::(scale b v) [c*x]::(scale c v)) // By definition and correctness of addv
+                  = addv (scale b x::v) (scale c x::v) // By definition of scale  
+    Hence n+1 holds true
+
+*)
+
+
+(* (19)
+
+To Prove : (Scalar Distribution over vector sums)  b.(u + v) = b.u + b.v or scale b ( addv u v ) = addv (scale b u ) (scale b v ) for u,v in vectors and b in floats with u,v of dimension n
+
+  Base Case : n=1 then u=[x] and v=[y]
+    scale b (addv [x] [y]) = scale b [x+y] // By correctness of addv
+                          = [b*(x+y)] // By correctness of scale
+                          = [b*x + b*y] // By arithmetic
+                          = addv [b*x] [b*y] // By definition and correctness of addv
+                          = addv (scale b [x]) (scale b [y]) // By definition of scale
+    Hence n=1 holds true
+
+  Inductive Step : n>1
+  Inductive Hypothesis : Assume scale b ( addv u v ) = addv (scale b u ) (scale b v ) for u,v in vectors and b in floats with u,v
+
+  scale b (addv x::u y::v) = scale b (x+y)::(addv u v) // By definition of addv
+                          = [b*(x+y)]::scale b (addv u v) // By definition of scale
+                          = [b*x + b*y]::scale b (addv u v) // By arithmetic
+                          = [b*x + b*y]::(addv (scale b u) (scale b v)) // By Inductive Hypothesis
+                          = addv [b*x]::(scale b u) [b*y]::(scale b v) // By definition and correctness of addv
+                          = addv (scale b x::u) (scale b y::v) // By definition of scale
+    Hence n+1 holds true
+
+*)
+
+(*PROOF OF EXTRA THREE PROPERTIES*)
+
+(* (20)
+
+TO Prove : length v = sqrt(dot_prod v v) for all vectors v of dimension n
+
+Proof : Using Induction on n ( dimension of vector v)
+
+  Base Case : n =1 or v=[x]
+  sqrt(dot_prod [x] [x])= sqrt(x*x) // By correctness of dot_prod
+                                    = sqrt(x^2) // By arithmetic
+                                    = length [x] // By definition of length
+    Hence n=1 holds true
+  
+  Inductive Step : n>1
+  Inductive Hypothesis : Assume length v = sqrt(dot_prod v v) for all vectors v of dimension n
+
+  sqrt(dot_prod x::v x::v ) = sqrt(x^2 + dot_prod v v) // By definition of dot_prod
+                            = sqrt(x^2+ v1^2 +v2^2...+vn^2) // By correctnesss of dot_prod and v = [v1,v2,...,vn]
+                            = length [x::v] // By definition of length
+    Hence n+1 holds true
+
+*)
+
+(* (21) 
+
+To Prove : angle v v = 0 for all vectors v of dimension n
+
+Proof : Using Induction on n (dimension of vector v)
+
+  Base Case : n=1 then v=[x]
+    angle [x] [x] = acos(dot_prod [x] [x] / (length [x] * length [x])) // By definition of angle
+                  = acos(x*x / (sqrt(x^2) * sqrt(x^2))) // By correctness of dot_prod and length
+                  = acos(x^2 / (|x|*|x|)) // By arithmetic
+                  = acos(x^2 / x^2) // By arithmetic
+                  = acos(1) // By arithmetic
+                  = 0 // By trigonometry
+    Hence n=1 holds true
+
+  Inductive Step : n>1
+  Inductive Hypothesis : Assume angle v v = 0 for all vectors v of dimension n
+
+  angle x::v x::v = acos(dot_prod x::v x::v / (length x::v * length x::v)) // By definition of angle
+                  = acos((x1*x1 + x2*x2 + ... + xn*xn) / (sqrt(x1^2 + x2^2 + ... + xn^2) * sqrt(x1^2 + x2^2 + ... + xn^2))) // By correctness of dot_prod and length
+                  = acos((x1^2 + x2^2 + ... + xn^2) / (|x::v|*|x::v|)) // By arithmetic
+                  = acos((x1^2 + x2^2 + ... + xn^2) / (x1^2 + x2^2 + ... + xn^2)) // By arithmetic
+                  = acos(1) // By arithmetic
+                  = 0 // By trigonometry
+    Hence n+1 holds true
+
+*)
+
+(* (22)
+
+To Prove : u.v = v.u or dot_pod u v = dot_prod v u  for all vectors u,v of dimension n
+
+Proof : Using Induction on n (dimension of vectors u and v)
+
+  Base Case : n=1 then u=[x] and v=[y]
+    dot_prod [x] [y] = x*y // By correctness of dot_prod
+                    = y*x // By arithmetic
+                    = dot_prod [y] [x] // By correctness of dot_prod
+    Hence n=1 holds true
+
+  Inductive Step : n>1
+  Inductive Hypothesis : Assume dot_prod u v = dot_prod v u for all vectors u,v of dimension n
+
+  dot_prod x::u y::v = x*y + dot_prod u v // By definition of dot_prod
+                    = y*x + dot_prod v u // By Inductive Hypothesis
+                    = dot_prod y::v x::u // By definition of dot_prod
+    Hence n+1 holds true
 
 *)
