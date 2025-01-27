@@ -101,11 +101,503 @@ let angle (v1: vector) (v2: vector) : float =
   end;;
 
 
+open Vectors;;
+
 (*TEST CASES*)
 
-(*TEST CASES FOR create FUNCTION*)
+(* Test Cases for create n x *)
+Printf.printf "-------------------create n x starts----------------------";;
+(* Test 1: Basic Creation *)
+Printf.printf "\n1. Basic Vector (n=3, x=2.0)\n";;
+try
+  let result = create 3 2.0 in
+  Printf.printf "Result: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) result;
+  print_newline ()
+with DimensionError -> Printf.printf "Error: Invalid dimension\n";;
+
+(* Test 2: Stack Overflow Check *)
+Printf.printf "\n2. Large Vector (n=100000)\n";;
+try
+  let result = create 100000 1.0 in
+  Printf.printf "Length: %d\n" (List.length result);
+  Printf.printf "Start: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (List.filteri (fun i _ -> i < 5) result);
+  Printf.printf "\nEnd:   ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (List.rev (List.filteri (fun i _ -> i < 5) (List.rev result)))
+with DimensionError -> Printf.printf "Error: Invalid dimension\n";;
+
+(* Test 3: Infinity *)
+Printf.printf "\n\n3. Infinity Vector (n=4)\n";;
+try
+  let result = create 4 infinity in
+  Printf.printf "Result: ";
+  List.iter (fun x -> Printf.printf "%f " x) result
+with DimensionError -> Printf.printf "Error: Invalid dimension\n";;
+
+(* Test 4: Invalid Dimension *)
+Printf.printf "\n\n4. Invalid Dimension (n=-1)\n";;
+try
+  let _ = create (-1) 3.14 in
+  Printf.printf "Unexpected success\n"
+with DimensionError -> Printf.printf "Error: Invalid dimension (Expected)\n";;
+
+(* Test 5: Vector Properties *)
+Printf.printf "\n5. Vector Properties (n=10, x=0.0)\n";;
+try
+  let result = create 10 0.0 in
+  Printf.printf "Length correct: %b\n" (List.length result = 10);
+  Printf.printf "Values correct: %b\n" (List.for_all (fun x -> x = 0.0) result)
+with DimensionError -> Printf.printf "Error: Invalid dimension\n";;
 
 
+(*Test cases  for dim v*)
+Printf.printf "-------------------dim v starts----------------------";;
+(* Test 1: Basic Vector *)
+Printf.printf "\n1. Basic Vector\n";;
+try
+  let v = [1.0; 2.0; 3.0] in
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v;
+  Printf.printf "\nDimension: %d\n" (dim v)
+with DimensionError -> Printf.printf "Error: Empty vector\n";;
+
+(* Test 2: Large Vector *)
+Printf.printf "\n2. Large Vector\n";;
+try
+  let v = List.init 100000 (fun _ -> 1.0) in
+  Printf.printf "Length: %d\n" (List.length v);
+  Printf.printf "Computed dimension: %d\n" (dim v)
+with DimensionError -> Printf.printf "Error: Empty vector\n";;
+
+(* Test 3: Single Element *)
+Printf.printf "\n3. Single Element Vector\n";;
+try
+  let v = [3.14] in
+  Printf.printf "Vector: %0.2f\n" (List.hd v);
+  Printf.printf "Dimension: %d\n" (dim v)
+with DimensionError -> Printf.printf "Error: Empty vector\n";;
+
+(* Test 4: Empty Vector *)
+Printf.printf "\n4. Empty Vector\n";;
+try
+  let v = [] in
+  Printf.printf "Dimension: %d\n" (dim v)
+with DimensionError -> Printf.printf "Error: Empty vector (Expected)\n";;
+
+(* Test 5: Property Check *)
+Printf.printf "\n5. Property Check\n";;
+try
+  let v = [1.0; 2.0; 3.0; 4.0; 5.0] in
+  let computed_dim = dim v in
+  let actual_length = List.length v in
+  Printf.printf "Computed dimension: %d\n" computed_dim;
+  Printf.printf "List length: %d\n" actual_length;
+  Printf.printf "Dimensions match: %b\n" (computed_dim = actual_length)
+with DimensionError -> Printf.printf "Error: Empty vector\n";;
+
+(*Test Cases for is_zero v*)
+
+Printf.printf "-------------------is_zero v starts----------------------";;
+(* Test 1: Zero Vector *)
+Printf.printf "\n1. Zero Vector\n";;
+try
+  let v = [0.0; 0.0; 0.0] in
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v;
+  Printf.printf "\nIs zero: %b\n" (is_zero v)
+with DimensionError -> Printf.printf "Error: Empty vector\n";;
+
+(* Test 2: Non-Zero Vector *)
+Printf.printf "\n2. Non-Zero Vector\n";;
+try
+  let v = [0.0; 1.0; 0.0] in
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v;
+  Printf.printf "\nIs zero: %b\n" (is_zero v)
+with DimensionError -> Printf.printf "Error: Empty vector\n";;
+
+(* Test 3: Large Zero Vector *)
+Printf.printf "\n3. Large Zero Vector\n";;
+try
+  let v = List.init 100000 (fun _ -> 0.0) in
+  Printf.printf "Length: %d\n" (List.length v);
+  Printf.printf "Is zero: %b\n" (is_zero v)
+with DimensionError -> Printf.printf "Error: Empty vector\n";;
+
+(* Test 4: Empty Vector *)
+Printf.printf "\n4. Empty Vector\n";;
+try
+  let v = [] in
+  Printf.printf "Is zero: %b\n" (is_zero v)
+with DimensionError -> Printf.printf "Error: Empty vector (Expected)\n";;
+
+(* Test 5: Single Element *)
+Printf.printf "\n5. Single Zero\n";;
+try
+  let v = [0.0] in
+  Printf.printf "Vector: %0.2f\n" (List.hd v);
+  Printf.printf "Is zero: %b\n" (is_zero v)
+with DimensionError -> Printf.printf "Error: Empty vector\n";;
+
+(*Test Cases for unit n j*)
+
+Printf.printf "-------------------unit n j starts----------------------";;
+(* Test 1: Standard Unit Vector *)
+Printf.printf "\n1. Standard Unit Vector\n";;
+try
+  let n, j = 5, 3 in
+  Printf.printf "n=%d, j=%d\n" n j;
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (unit n j);
+  print_newline ()
+with DimensionError -> Printf.printf "Error: Invalid dimensions\n";;
+
+(* Test 2: Boundary Case - First Position *)
+Printf.printf "\n2. First Position\n";;
+try
+  let n, j = 4, 1 in
+  Printf.printf "n=%d, j=%d\n" n j;
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (unit n j);
+  print_newline ()
+with DimensionError -> Printf.printf "Error: Invalid dimensions\n";;
+
+(* Test 3: Boundary Case - Last Position *)
+Printf.printf "\n3. Last Position\n";;
+try
+  let n, j = 4, 4 in
+  Printf.printf "n=%d, j=%d\n" n j;
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (unit n j);
+  print_newline ()
+with DimensionError -> Printf.printf "Error: Invalid dimensions\n";;
+
+(* Test 4: Invalid Position *)
+Printf.printf "\n4. Invalid Position\n";;
+try
+  let n, j = 3, 4 in
+  Printf.printf "n=%d, j=%d\n" n j;
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (unit n j);
+  print_newline ()
+with DimensionError -> Printf.printf "Error: Invalid dimensions (Expected)\n";;
+
+(* Test 5: Large Vector *)
+Printf.printf "\n5. Large Vector\n";;
+try
+  let n, j = 10000, 5000 in
+  let result = unit n j in
+  Printf.printf "Size: %d, Position: %d\n" n j;
+  Printf.printf "Length correct: %b\n" (List.length result = n);
+  Printf.printf "1.0 at position %d: %b\n" j 
+    (List.nth result (j-1) = 1.0)
+with DimensionError -> Printf.printf "Error: Invalid dimensions\n";;
+
+(*Test Cases for scale c v*)
+
+Printf.printf "-------------------scale c v starts----------------------";;
+(* Test 1: Basic Scaling *)
+Printf.printf "\n1. Basic Scaling\n";;
+try
+  let v = [1.0; 2.0; 3.0] in
+  let c = 2.0 in
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v;
+  Printf.printf "\nScale by: %0.2f\n" c;
+  Printf.printf "Result: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (scale c v);
+  print_newline ()
+with DimensionError -> Printf.printf "Error: Empty vector\n";;
+
+(* Test 2: Scale by Zero *)
+Printf.printf "\n2. Scale by Zero\n";;
+try
+  let v = [1.0; 2.0; 3.0] in
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v;
+  Printf.printf "\nResult: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (scale 0.0 v);
+  print_newline ()
+with DimensionError -> Printf.printf "Error: Empty vector\n";;
+
+(* Test 3: Scale Large Vector *)
+Printf.printf "\n3. Large Vector\n";;
+try
+  let v = List.init 10000 (fun _ -> 1.0) in
+  let result = scale 2.0 v in
+  Printf.printf "Length: %d\n" (List.length result);
+  Printf.printf "All elements = 2.0: %b\n" 
+    (List.for_all (fun x -> x = 2.0) result)
+with DimensionError -> Printf.printf "Error: Empty vector\n";;
+
+(* Test 4: Empty Vector *)
+Printf.printf "\n4. Empty Vector\n";;
+try
+  Printf.printf "Scale empty vector by 2.0:\n";
+  let _ = scale 2.0 [] in
+  Printf.printf "Unexpected success\n"
+with DimensionError -> Printf.printf "Error: Empty vector (Expected)\n";;
+
+(* Test 5: Negative Scaling *)
+Printf.printf "\n5. Negative Scaling\n";;
+try
+  let v = [1.0; -2.0; 3.0] in
+  let c = -1.0 in
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v;
+  Printf.printf "\nScale by: %0.2f\n" c;
+  Printf.printf "Result: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (scale c v);
+  print_newline ()
+with DimensionError -> Printf.printf "Error: Empty vector\n";;
+
+(* Test Cases for addv v1 v2*)
+
+Printf.printf "-------------------addv v1 v2 starts----------------------";;
+(* Test 1: Basic Addition *)
+Printf.printf "\n1. Basic Addition\n";;
+try
+  let v1 = [1.0; 2.0; 3.0] in
+  let v2 = [4.0; 5.0; 6.0] in
+  Printf.printf "Vector 1: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v1;
+  Printf.printf "\nVector 2: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v2;
+  Printf.printf "\nSum:      ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (addv v1 v2);
+  print_newline ()
+with DimensionError -> Printf.printf "Error: Dimension mismatch\n";;
+
+(* Test 2: Different Dimensions *)
+Printf.printf "\n2. Different Dimensions\n";;
+try
+  let v1 = [1.0; 2.0] in
+  let v2 = [1.0; 2.0; 3.0] in
+  Printf.printf "Vector 1: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v1;
+  Printf.printf "\nVector 2: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v2;
+  Printf.printf "\nSum: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (addv v1 v2)
+with DimensionError -> Printf.printf "Error: Dimension mismatch (Expected)\n";;
+
+(* Test 3: Large Vectors *)
+Printf.printf "\n3. Large Vectors\n";;
+try
+  let v1 = List.init 10000 (fun _ -> 1.0) in
+  let v2 = List.init 10000 (fun _ -> 2.0) in
+  let result = addv v1 v2 in
+  Printf.printf "Length: %d\n" (List.length result);
+  Printf.printf "All elements = 3.0: %b\n" 
+    (List.for_all (fun x -> x = 3.0) result)
+with DimensionError -> Printf.printf "Error: Dimension mismatch\n";;
+
+(* Test 4: Zero Vectors *)
+Printf.printf "\n4. Zero Vectors\n";;
+try
+  let v1 = [0.0; 0.0; 0.0] in
+  let v2 = [0.0; 0.0; 0.0] in
+  Printf.printf "Result: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (addv v1 v2);
+  print_newline ()
+with DimensionError -> Printf.printf "Error: Dimension mismatch\n";;
+
+(* Test 5: Mixed Signs *)
+Printf.printf "\n5. Mixed Signs\n";;
+try
+  let v1 = [1.0; -2.0; 3.0] in
+  let v2 = [-1.0; 2.0; -3.0] in
+  Printf.printf "Vector 1: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v1;
+  Printf.printf "\nVector 2: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v2;
+  Printf.printf "\nSum:      ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) (addv v1 v2);
+  print_newline ()
+with DimensionError -> Printf.printf "Error: Dimension mismatch\n";;
+
+(*Test Cases for dot_prod*)
+Printf.printf "-------------------dot_prod v1 v2 starts----------------------";;
+(* Test 1: Basic Dot Product *)
+Printf.printf "\n1. Basic Dot Product\n";;
+try
+  let v1 = [1.0; 2.0; 3.0] in
+  let v2 = [4.0; 5.0; 6.0] in
+  Printf.printf "Vector 1: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v1;
+  Printf.printf "\nVector 2: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v2;
+  Printf.printf "\nDot Product: %0.2f\n" (dot_prod v1 v2)
+with DimensionError -> Printf.printf "Error: Invalid dimensions\n";;
+
+(* Test 2: Different Dimensions *)
+Printf.printf "\n2. Different Dimensions\n";;
+try
+  let v1 = [1.0; 2.0] in
+  let v2 = [1.0; 2.0; 3.0] in
+  Printf.printf "Vectors of size 2 and 3\n";
+  Printf.printf "Dot Product: %0.2f\n" (dot_prod v1 v2)
+with DimensionError -> Printf.printf "Error: Invalid dimensions (Expected)\n";;
+
+(* Test 3: Large Vectors *)
+Printf.printf "\n3. Large Vectors\n";;
+try
+  let v1 = List.init 10000 (fun _ -> 1.0) in
+  let v2 = List.init 10000 (fun _ -> 2.0) in
+  let result = dot_prod v1 v2 in
+  Printf.printf "Size: 10000\n";
+  Printf.printf "Result: %0.2f\n" result;
+  Printf.printf "Expected: %0.2f\n" (20000.0)
+with DimensionError -> Printf.printf "Error: Invalid dimensions\n";;
+
+(* Test 4: Orthogonal Vectors *)
+Printf.printf "\n4. Orthogonal Vectors\n";;
+try
+  let v1 = [1.0; 0.0] in
+  let v2 = [0.0; 1.0] in
+  Printf.printf "Vector 1: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v1;
+  Printf.printf "\nVector 2: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v2;
+  Printf.printf "\nDot Product: %0.2f\n" (dot_prod v1 v2)
+with DimensionError -> Printf.printf "Error: Invalid dimensions\n";;
+
+(* Test 5: Empty Vectors *)
+Printf.printf "\n5. Empty Vectors\n";;
+try
+  Printf.printf "Testing empty vectors\n";
+  Printf.printf "Dot Product: %0.2f\n" (dot_prod [] [])
+with DimensionError -> Printf.printf "Error: Invalid dimensions (Expected)\n";;
+
+(*Test Cases for length v*)
+Printf.printf "-------------------length v starts----------------------";;
+(* Test 1: Basic Length *)
+Printf.printf "\n1. Basic Length\n";;
+try
+  let v = [3.0; 4.0] in
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v;
+  Printf.printf "\nLength: %0.2f" (length v);
+  Printf.printf "\nExpected: 5.00\n"
+with DimensionError -> Printf.printf "Error: Invalid vector\n";;
+
+(* Test 2: Unit Vector *)
+Printf.printf "\n2. Unit Vector\n";;
+try
+  let v = [1.0; 0.0; 0.0] in
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v;
+  Printf.printf "\nLength: %0.2f\n" (length v)
+with DimensionError -> Printf.printf "Error: Invalid vector\n";;
+
+(* Test 3: Zero Vector *)
+Printf.printf "\n3. Zero Vector\n";;
+try
+  let v = [0.0; 0.0; 0.0] in
+  Printf.printf "Vector: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v;
+  Printf.printf "\nLength: %0.2f\n" (length v)
+with DimensionError -> Printf.printf "Error: Invalid vector\n";;
+
+(* Test 4: Scale Property *)
+Printf.printf "\n4. Scale Property\n";;
+try
+  let v = [2.0; 3.0] in
+  let c = 2.0 in
+  let scaled_length = length (scale c v) in
+  let expected = c *. (length v) in
+  Printf.printf "Original length * %0.2f: %0.2f\n" c expected;
+  Printf.printf "Scaled vector length:    %0.2f\n" scaled_length;
+  Printf.printf "Property holds: %b\n" (abs_float(scaled_length -. expected) < 0.000001)
+with DimensionError -> Printf.printf "Error: Invalid vector\n";;
+
+(* Test 5: Triangle Inequality *)
+Printf.printf "\n5. Triangle Inequality\n";;
+try
+  let v1 = [1.0; 2.0] in
+  let v2 = [2.0; 1.0] in
+  let sum_v = addv v1 v2 in
+  let sum_length = length sum_v in
+  let length_sum = (length v1) +. (length v2) in
+  Printf.printf "Length of sum: %0.2f\n" sum_length;
+  Printf.printf "Sum of lengths: %0.2f\n" length_sum;
+  Printf.printf "Triangle inequality holds: %b\n" 
+    (sum_length <= length_sum +. 0.000001)
+with DimensionError -> Printf.printf "Error: Invalid vector\n";;
+
+(*Test Cases for angle v1 v2*)
+Printf.printf "-------------------angle v1 v2 starts----------------------";;
+(* Test 1: Right Angle *)
+Printf.printf "\n1. Right Angle (90 degrees)\n";;
+try
+  let v1 = [1.0; 0.0] in
+  let v2 = [0.0; 1.0] in
+  Printf.printf "Vector 1: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v1;
+  Printf.printf "\nVector 2: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v2;
+  Printf.printf "\nAngle: %0.2f radians (%0.2f degrees)\n" 
+    (angle v1 v2) ((angle v1 v2) *. 180.0 /. Float.pi)
+with 
+  | ZeroDIvisionError -> Printf.printf "Error: Zero vector\n"
+  | DimensionError -> Printf.printf "Error: Invalid dimensions\n";;
+
+(* Test 2: Same Direction *)
+Printf.printf "\n2. Same Direction (0 degrees)\n";;
+try
+  let v1 = [2.0; 2.0] in
+  let v2 = [4.0; 4.0] in
+  Printf.printf "Vector 1: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v1;
+  Printf.printf "\nVector 2: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v2;
+  Printf.printf "\nAngle: %0.2f radians (%0.2f degrees)\n" 
+    (angle v1 v2) ((angle v1 v2) *. 180.0 /. Float.pi)
+with 
+  | ZeroDIvisionError -> Printf.printf "Error: Zero vector\n"
+  | DimensionError -> Printf.printf "Error: Invalid dimensions\n";;
+
+(* Test 3: Opposite Direction *)
+Printf.printf "\n3. Opposite Direction (180 degrees)\n";;
+try
+  let v1 = [1.0; 1.0] in
+  let v2 = [-1.0; -1.0] in
+  Printf.printf "Vector 1: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v1;
+  Printf.printf "\nVector 2: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v2;
+  Printf.printf "\nAngle: %0.2f radians (%0.2f degrees)\n" 
+    (angle v1 v2) ((angle v1 v2) *. 180.0 /. Float.pi)
+with 
+  | ZeroDIvisionError -> Printf.printf "Error: Zero vector\n"
+  | DimensionError -> Printf.printf "Error: Invalid dimensions\n";;
+
+(* Test 4: Zero Vector Error *)
+Printf.printf "\n4. Zero Vector\n";;
+try
+  let v1 = [0.0; 0.0] in
+  let v2 = [1.0; 1.0] in
+  Printf.printf "Testing with zero vector\n";
+  Printf.printf "Angle: %0.2f\n" (angle v1 v2)
+with 
+  | ZeroDIvisionError -> Printf.printf "Error: Zero vector (Expected)\n"
+  | DimensionError -> Printf.printf "Error: Invalid dimensions\n";;
+
+(* Test 5: 45 Degree Angle *)
+Printf.printf "\n5. 45 Degree Angle\n";;
+try
+  let v1 = [1.0; 0.0] in
+  let v2 = [1.0; 1.0] in
+  Printf.printf "Vector 1: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v1;
+  Printf.printf "\nVector 2: ";
+  List.iter (fun x -> Printf.printf "%0.2f " x) v2;
+  Printf.printf "\nAngle: %0.2f radians (%0.2f degrees)\n" 
+    (angle v1 v2) ((angle v1 v2) *. 180.0 /. Float.pi)
+with 
+  | ZeroDIvisionError -> Printf.printf "Error: Zero vector\n"
+  | DimensionError -> Printf.printf "Error: Invalid dimensions\n";;
 
 (* CORRECTNESS PROOFS FOR ALL FUNCTIONS*)
 
