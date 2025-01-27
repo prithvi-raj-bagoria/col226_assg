@@ -100,6 +100,13 @@ let angle (v1: vector) (v2: vector) : float =
 
   end;;
 
+
+(*TEST CASES*)
+
+(*TEST CASES FOR create FUNCTION*)
+
+
+
 (* CORRECTNESS PROOFS FOR ALL FUNCTIONS*)
 
 (*  (1)
