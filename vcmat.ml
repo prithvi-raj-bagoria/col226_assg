@@ -5,7 +5,7 @@ module Vectors = struct
 (* Type definition*)
 type vector = float list;;
 
-(* Exception for Dimension Error*)
+(* Exception for Dimension and ZeroDivision Error*)
 exception DimensionError;;
 exception ZeroDIvisionError;;
 
@@ -99,7 +99,6 @@ let angle (v1: vector) (v2: vector) : float =
   in  acos cos_theta_clamped;;
 
   end;;
-
 
 open Vectors;;
 
@@ -1210,13 +1209,13 @@ Proof : Using Induction on n (dimension of vectors u and v)
   Base Case : n=1 then u=[x] and v=[y]
     dot_prod [x] [y] = x*y // By correctness of dot_prod
                     = y*x // By arithmetic
-                    = dot_prod [y] [x] // By correctness of dot_prod
+                    = dot_prod [y] [x] // By correctness and definition of dot_prod
     Hence n=1 holds true
 
   Inductive Step : n>1
   Inductive Hypothesis : Assume dot_prod u v = dot_prod v u for all vectors u,v of dimension n
 
-  dot_prod x::u y::v = x*y + dot_prod u v // By definition of dot_prod
+  dot_prod x::u y::v = x*y + dot_prod u v // By definition and correctness of dot_prod
                     = y*x + dot_prod v u // By Inductive Hypothesis
                     = dot_prod y::v x::u // By definition of dot_prod
     Hence n+1 holds true
