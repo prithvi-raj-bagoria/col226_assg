@@ -1,8 +1,9 @@
 open List;;
 open Float;;
 
-(*Adding Vectors module from assignment 1*)
-
+(*-----------------
+Adding Vectors module from assignment 1
+------------------*)
 (* Implementing Vectors and Matrices with help of float and lists*)
 module Vectors = struct 
 (* Type definition*)
@@ -27,7 +28,7 @@ let dim (v:vector) : int =
   else
   let rec dim_tr (v:vector) (len:int) = match v with
     [] -> len
-  | x::xs -> dim_tr xs (len+1)
+  | _::xs -> dim_tr xs (len+1)
   in dim_tr v 0;;
 
 (*is_zero:  vector -> bool  //  checks that a given  vector v (of dim n) is the zero vector of dimension n*)
@@ -59,7 +60,7 @@ let scale (c: float) (v: vector) : vector =
   List.map (fun x -> c *. x) v;;
 
 (*addv : vector -> vector -> vector //  adds given vectors v1 and v2 (these should of the same dimension n. else raise the exception DimensionError) to return  v1 + v2*)
-let rec addv (v1:vector) (v2:vector) : vector =
+let  addv (v1:vector) (v2:vector) : vector =
   if (dim v1) <> (dim v2) then raise DimensionError
   else 
     let rec addv_helper v1 v2  = 
@@ -77,7 +78,7 @@ let dot_prod (v1:vector) (v2:vector) : float =
       in dot_prod_tr v1 v2 0.;;
     
 (*inv: vector -> vector //  given a vector  v, returns the vector that is its vector additive inverse. *)
-let rec inv (v:vector) : vector = 
+let  inv (v:vector) : vector = 
   if v=[] then raise DimensionError
   else
   List.map (fun x -> -.x) v;;
@@ -133,60 +134,60 @@ let rec type_of e = match e with
   T -> Bool
 | F -> Bool
 | ConstS _ -> Scalar
-| ConstV vec -> Vector (dim vec)
+| ConstV vec -> if vec=[] then raise (Wrong e) else  Vector (dim vec)
 
 | Add(e1,e2) -> (* Bool*Bool -> Bool OR Scalar*Scalar-> Scalar OR Vector*Vector->Vector*)
   (match (type_of e1, type_of e2) with
   | (Bool,Bool) -> Bool
   | (Scalar,Scalar) -> Scalar
-  | (Vector n1,Vector n2) -> if (n1=n2) then Vector n1 else raise (Wrong e) (*Checking for same dimension*)
+  | (Vector n1,Vector n2) -> if (n1=n2 && n1>0) then Vector n1 else raise (Wrong e) (*Checking for same dimension*)
   | _ -> raise (Wrong e))
 
 | Inv e ->  (*Bool->Bool OR Scalar->Scalar OR Vector -> Vector*)
   (match (type_of e) with
   | Bool -> Bool
   | Scalar -> Scalar
-  | Vector n1 -> Vector n1)
+  | Vector n1 when n1>0 ->  Vector n1
+  |_ -> raise (Wrong e))
 
 | ScalProd (e1,e2) -> (* Bool*Bool -> Bool OR Scalar*Scalar-> Scalar OR Scalar*Vector->Vector*)
   (match (type_of e1,type_of e2) with
   | (Bool,Bool) -> Bool
   | (Scalar,Scalar) -> Scalar
-  | (Scalar,Vector n1) -> Vector n1
-  | (Vector n1 , Scalar) -> Vector n1
+  | (Scalar,Vector n1) when n1>0 ->  Vector n1
+  | (Vector n1 , Scalar) when n1>0 ->  Vector n1
   | _ -> raise (Wrong e))
 
 | DotProd (e1,e2) -> (* Vector*Vector->Vector*)
   (match (type_of e1,type_of e2) with
-  | (Vector n1 , Vector n2) -> if(n1=n2) then Scalar else raise (Wrong e)
+  | (Vector n1 , Vector n2) -> if(n1=n2 && n1>0) then Scalar else raise (Wrong e)
   | _ -> raise (Wrong e))
 
 | Mag e1 -> (* Scalar -> Scalar OR Vector->Scalar*)
   (match (type_of e1) with
   | Scalar -> Scalar
-  | Vector _ -> Scalar
+  | Vector n1 when n1>0 ->  Scalar
   | _ -> raise (Wrong e))
 
 | Angle (e1,e2) -> (*Vector*Vector -> Scalar*)
   (match(type_of e1,type_of e2) with
-  | (Vector n1,Vector n2) ->  if (n1=n2) then Scalar else raise (Wrong e)
+  | (Vector n1,Vector n2) ->  if (n1=n2 && n1>0) then Scalar else raise (Wrong e)
   | _ -> raise (Wrong e))
 
 | IsZero e1 -> (*Bool->Bool OR Scalar->Bool OR Vector->Bool*)
   (match(type_of e1) with
   | Bool -> Bool
   | Scalar -> Bool
-  | Vector _ -> Bool)
+  | Vector n1 when n1>0 -> Bool
+  | _-> raise (Wrong e))
 
 | Cond(e1,e2,e3) -> (*bool*'a*'a -> 'a*)
   (if (type_of e1) <> Bool 
     then raise (Wrong e)
   else if (type_of e2) <> (type_of e3) 
     then raise (Wrong e)
-  else (type_of e2))
-;;
-
-(*-----------------
+  else (type_of e2));;
+(* (*-----------------
 DEFINITONAL INTERPRETER
 -------------------*)
 open Vectors;;
@@ -255,4 +256,106 @@ let rec eval e = match e with
     match eval e1 with
     | B true  -> eval e2
     | B false -> eval e3
-    | _       -> raise (Wrong (Cond(e1,e2,e3)));;
+    | _       -> raise (Wrong (Cond(e1,e2,e3)));; *)
+
+
+(* Combined test cases for type_of function *)
+let test_type_checks () =
+  (* Test 1 & 2: Complex nested conditional and vector operations *)
+  assert (type_of (Cond(
+    IsZero(DotProd(ScalProd(ConstS 2.0, ConstV [1.0; 2.0; 3.0]),
+                      Add(ConstV [1.0; 1.0; 1.0], ScalProd(ConstS (-1.0), ConstV [0.0; 1.0; 2.0])))),
+    Cond(T, ConstS 1.0, ConstS 2.0),
+    Cond(F, ConstS 3.0, ConstS 4.0))) = Scalar);
+
+  (* Test 2: Complex boolean expression combinations *)
+  assert (type_of (Add(
+    IsZero(Mag(ConstV [0.0; 0.0])),
+    IsZero(Add(ConstS 1.0, Inv(ConstS 1.0))))) = Bool);
+
+  (* Test 3: Mixed scalar and vector operations *)
+  assert (type_of (Mag(
+    ScalProd(
+      DotProd(ConstV [1.0; 0.0], ConstV [0.0; 1.0]),
+      ConstV [2.0; 3.0]))) = Scalar);
+
+  (* Test 4: Complex angle calculations *)
+  assert (type_of (IsZero(
+    Add(
+      Angle(ConstV [1.0; 0.0], ConstV [0.0; 1.0]),
+      Inv(ConstS (Float.pi /. 2.))))) = Bool);
+
+  (* Test 5: Nested inversions with mixed types *)
+  assert (type_of (ScalProd(
+    Inv(ConstS 2.0),
+    Inv(ConstV [1.0; 2.0; 3.0]))) = Vector 3);
+
+  (* Test 6: Complex vector equality testing *)
+  assert (type_of (IsZero(
+    DotProd(
+      Add(ConstV [1.0; 1.0], ConstV [-1.0; -1.0]),
+      ConstV [1.0; 1.0]))) = Bool);
+
+  (* Test 7: Nested conditional with vector operations *)
+  assert (type_of (Cond(
+    IsZero(Angle(ConstV [1.0; 0.0], ConstV [1.0; 0.0])),
+    ScalProd(ConstS 2.0, ConstV [1.0; 2.0]),
+    Inv(ConstV [3.0; 4.0]))) = Vector 2);
+
+  (* Test 8: Complex magnitude chains *)
+  assert (type_of (IsZero(
+    Add(
+      Mag(ConstV [3.0; 4.0]),
+      Inv(Mag(ScalProd(ConstS 2.0, ConstV [1.5; 2.0])))))) = Bool);
+
+  (* Test 9: Deep nested operations *)
+  assert (type_of (Cond(
+    IsZero(DotProd(
+      ScalProd(ConstS 2.0, ConstV [1.0; 0.0]),
+      Add(ConstV [0.0; 1.0], Inv(ConstV [0.0; 1.0])))),
+    Angle(ConstV [1.0; 1.0], ConstV [0.0; 1.0]),
+    Mag(ConstV [3.0; 4.0]))) = Scalar);
+
+  (* Additional Boundary Cases *)
+  assert (type_of (Mag(ConstV [1.])) = Scalar); (* Test empty vector magnitude *)
+  assert (type_of (IsZero(Add(ConstS Float.max_float, ConstS (-.Float.max_float)))) = Bool); (* Extreme float values *)
+  assert (type_of (Cond(T, ConstS Float.epsilon, ConstS (-.Float.epsilon))) = Scalar); (* Smallest float *)
+  assert (type_of (DotProd(ConstV [1.], ConstV [2.])) = Scalar); (* Empty dot product *)
+  assert (type_of (ScalProd(ConstS 0.0, ConstV [1.0; 2.0; 3.0])) = Vector 3); (* Scalar multiplication by zero *)
+
+  (* Edge Case Conditionals *)
+  assert (type_of (Cond(IsZero(ConstS 0.0), ConstS 1.0, ConstS 2.0)) = Scalar); (* Edge condition value *)
+  assert (type_of (Cond(IsZero(DotProd(ConstV [0.0], ConstV [0.0])), ConstS 1.0, ConstS 2.0)) = Scalar); (* Dot product zero *)
+  assert (type_of (Cond(F, ConstS 0.0, ConstS Float.max_float)) = Scalar); (* False branch test *)
+  assert (type_of (Cond(T, ConstS Float.epsilon, ConstS 0.0)) = Scalar); (* True branch epsilon *)
+  assert (type_of (Cond(T, ConstV [1.0; 2.0], ConstV [3.0; 4.0])) = Vector 2); (* Conditional vector *)
+
+  (* Advanced Error Handling *)
+  let assert_wrong expr =
+    try 
+      let _ = type_of expr in
+      failwith "Expected Wrong exception not raised"
+    with Wrong _ -> ()
+  in
+  (* Test Add with mismatched types: Scalar + Vector should error. *)
+  assert_wrong (Add(ConstS 1.0, ConstV [1.0]));
+  (* Test DotProd with wrong types: Scalar and Vector. *)
+  assert_wrong (DotProd(ConstS 1.0, ConstV [1.0; 2.0]));
+  (* Test Cond with non-boolean condition. *)
+  assert_wrong (Cond(ConstS 1.0, ConstS 1.0, ConstS 2.0));
+  (* Test ScalProd with two vectors (unsupported overload). *)
+  assert_wrong (ScalProd(ConstV [1.0; 2.0], ConstV [3.0; 4.0]));
+  (* Test Angle with vectors of different dimensions. *)
+  assert_wrong (Angle(ConstV [1.0; 0.0], ConstV [1.0; 0.0; 0.0]));
+  (* Additional Error Tests *)
+  assert_wrong (Mag(ConstS 1.0)); (* Magnitude of scalar *)
+  assert_wrong (DotProd(ConstV [1.0; 2.0], ConstV [3.0])); (* Mismatched vector dimensions *)
+  assert_wrong (ScalProd(ConstS 1., ConstV [1.0; 2.0])); (* NaN scalar multiplication *)
+  assert_wrong (Angle(ConstV [1.], ConstV [2.])); (* Angle between empty vectors *)
+  assert_wrong (Cond(IsZero(ConstV [1.0]), ConstS 1.0, ConstS 2.0)); (* Non-boolean condition *)
+
+  print_string "All error type tests passed!\n";;
+
+(* Run the combined tests *)
+let () =
+  test_type_checks ();
