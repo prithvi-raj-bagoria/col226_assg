@@ -153,6 +153,7 @@ let rec type_of e = match e with
   | (Bool,Bool) -> Bool
   | (Scalar,Scalar) -> Scalar
   | (Scalar,Vector n1) -> Vector n1
+  | (Vector n1 , Scalar) -> Vector n1
   | _ -> raise (Wrong e))
 
 | DotProd (e1,e2) -> (* Vector*Vector->Vector*)
@@ -188,3 +189,75 @@ let rec type_of e = match e with
 (*-----------------
 DEFINITONAL INTERPRETER
 -------------------*)
+type values = B of bool | S of float | V of vector;; (*values which are given by interpreter*)
+open Vectors;;
+
+let myAdd (e1:expr) (e2:expr) : values  = match type_of e1,type_of e2,e1,e2 with
+| Bool ,Bool,F,F -> B false
+| Bool ,Bool,_,_ -> B true
+| Scalar,Scalar,ConstS s1,ConstS s2 -> S (s1 +. s2)
+| Vector n1 , Vector n2 , ConstV v1 , ConstV v2 when n1=n2 ->V (addv v1 v2)
+| _ -> raise (Wrong (Add(e1,e2)));;
+
+let myInv (e1:expr) : values  = match type_of e1,e1 with
+| Bool , F -> B true
+| Bool , T -> B false
+| Scalar , ConstS x -> S ((-1.) *. x)
+| Vector n1 , ConstV v -> V ( scale (-1.) v)
+| _ -> raise (Wrong (Inv(e1)));;
+
+let myScalProd (e1:expr) (e2:expr) : values  = match type_of e1,type_of e2,e1,e2 with
+| Bool ,Bool,T,T -> B true
+| Bool ,Bool,_,_ -> B false
+| Scalar,Scalar,ConstS s1,ConstS s2 -> S (s1 *. s2)
+| Vector n1 , Scalar , ConstV v1 , ConstS s1  ->V (scale s1 v1)
+| Scalar,Vector n1 , ConstS s1, ConstV v1  ->V (scale s1 v1)
+| _ -> raise (Wrong (Add(e1,e2)));;
+
+let myDotProd (e1:expr) (e2:expr) : values = match type_of e1,type_of e2 , e1 ,e2 with
+| Vector n1 , Vector n2 , ConstV v1 , ConstV v2 -> S (dot_prod v1 v2) 
+| _ -> raise (Wrong (DotProd(e1,e2)));;
+
+let myMag (e1: expr) : values =
+  match type_of e1, e1 with
+  | Scalar, ConstS x -> S (abs_float x)
+  | Vector _, ConstV v -> S (length v)
+  | _ -> raise (Wrong (Mag(e1)));;
+
+let myAngle (e1: expr) (e2: expr) : values = 
+  match type_of e1, type_of e2, e1, e2 with
+  | Vector n1, Vector n2, ConstV v1, ConstV v2 -> S (angle v1 v2)
+  | _ -> raise (Wrong (Angle(e1,e2)));;
+
+let myIsZero (e1: expr) : values =
+  match type_of e1, e1 with
+  | Bool, F -> B true
+  | Bool, T -> B false
+  | Scalar, ConstS x -> B (abs_float x < epsilon)
+  | Vector _, ConstV v -> B (List.for_all (fun a -> abs_float a < epsilon) v)
+  | _ -> raise (Wrong (IsZero(e1)));;
+
+let rec eval e = match e with
+  | T -> B true
+  | F -> B false
+  | ConstS x -> S x
+  | ConstV v -> V v
+  | Add(e1, e2) -> myAdd e1 e2
+  | Inv(e1) -> myInv e1
+  | ScalProd(e1,e2) -> myScalProd e1 e2
+  | DotProd(e1,e2) -> myDotProd e1 e2
+  | Mag(e1) -> myMag e1
+  | Angle(e1,e2) -> myAngle e1 e2
+  | IsZero(e1) -> myIsZero e1
+  | Cond(e1,e2,e3) -> myCond e1 e2 e3
+  | _ -> raise (Wrong e)
+  and myCond (e1: expr) (e2: expr) (e3: expr) : values =
+    match type_of e1, e1 with
+    | Bool, T -> eval e2
+    | Bool, F -> eval e3
+    | Bool, _ ->
+        (match eval e1 with
+         | B true -> eval e2
+         | B false -> eval e3
+         | _ -> raise (Wrong (Cond(e1, e2, e3))))
+    | _ -> raise (Wrong (Cond(e1, e2, e3)));;
