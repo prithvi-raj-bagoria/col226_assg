@@ -181,9 +181,9 @@ let rec type_of e = match e with
 | Cond(e1,e2,e3) -> (*bool*'a*'a -> 'a*)
   (if (type_of e1) <> Bool 
     then raise (Wrong e)
-  else if (type_of e1) <> (type_of e2) 
+  else if (type_of e2) <> (type_of e3) 
     then raise (Wrong e)
-  else (type_of e1))
+  else (type_of e2))
 ;;
 
 (*-----------------
@@ -252,12 +252,7 @@ let rec eval e = match e with
   | IsZero(e1) -> myIsZero e1
   | Cond(e1,e2,e3) -> myCond e1 e2 e3
   and myCond (e1: expr) (e2: expr) (e3: expr) : values =
-    match type_of e1, e1 with
-    | Bool, T -> eval e2
-    | Bool, F -> eval e3
-    | Bool, _ ->
-        (match eval e1 with
-         | B true -> eval e2
-         | B false -> eval e3
-         | _ -> raise (Wrong (Cond(e1, e2, e3))))
-    | _ -> raise (Wrong (Cond(e1, e2, e3)));;
+    match eval e1 with
+    | B true  -> eval e2
+    | B false -> eval e3
+    | _       -> raise (Wrong (Cond(e1,e2,e3)));;
