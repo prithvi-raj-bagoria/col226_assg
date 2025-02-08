@@ -164,7 +164,7 @@ let rec type_of e = match e with
 | Mag e1 -> (* Scalar -> Scalar OR Vector->Scalar*)
   (match (type_of e1) with
   | Scalar -> Scalar
-  | Vector n1 -> Scalar
+  | Vector _ -> Scalar
   | _ -> raise (Wrong e))
 
 | Angle (e1,e2) -> (*Vector*Vector -> Scalar*)
@@ -176,7 +176,7 @@ let rec type_of e = match e with
   (match(type_of e1) with
   | Bool -> Bool
   | Scalar -> Bool
-  | Vector n1 -> Bool)
+  | Vector _ -> Bool)
 
 | Cond(e1,e2,e3) -> (*bool*'a*'a -> 'a*)
   (if (type_of e1) <> Bool 
@@ -189,8 +189,9 @@ let rec type_of e = match e with
 (*-----------------
 DEFINITONAL INTERPRETER
 -------------------*)
-type values = B of bool | S of float | V of vector;; (*values which are given by interpreter*)
 open Vectors;;
+
+type values = B of bool | S of float | V of vector;; (*values which are given by interpreter*)
 
 let myAdd (e1:expr) (e2:expr) : values  = match type_of e1,type_of e2,e1,e2 with
 | Bool ,Bool,F,F -> B false
@@ -250,7 +251,6 @@ let rec eval e = match e with
   | Angle(e1,e2) -> myAngle e1 e2
   | IsZero(e1) -> myIsZero e1
   | Cond(e1,e2,e3) -> myCond e1 e2 e3
-  | _ -> raise (Wrong e)
   and myCond (e1: expr) (e2: expr) (e3: expr) : values =
     match type_of e1, e1 with
     | Bool, T -> eval e2
