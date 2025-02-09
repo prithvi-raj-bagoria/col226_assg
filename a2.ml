@@ -101,7 +101,7 @@ let angle (v1: vector) (v2: vector) : float =
       else cos_theta
   in  acos cos_theta_clamped;;
 end;;
-    
+
 open Vectors;;
 
 (* Defining Types for our DSL*)
@@ -128,26 +128,25 @@ type expr =
 TYPE CHECKER
 ----------------------------------*)
 exception Wrong of expr;; (*Exception for type mismatch*)
-let epsilon:float = 1e-06;; (*Epsilon for checking isZero*)
 
 let rec type_of e = match e with 
   T -> Bool
 | F -> Bool
 | ConstS _ -> Scalar
-| ConstV vec -> if vec=[] then raise (Wrong e) else  Vector (dim vec)
+| ConstV vec -> if vec=[] then raise (Wrong e) else  Vector (dim vec) (*checking vec shouldn't be empty*)
 
 | Add(e1,e2) -> (* Bool*Bool -> Bool OR Scalar*Scalar-> Scalar OR Vector*Vector->Vector*)
   (match (type_of e1, type_of e2) with
   | (Bool,Bool) -> Bool
   | (Scalar,Scalar) -> Scalar
-  | (Vector n1,Vector n2) -> if (n1=n2 && n1>0) then Vector n1 else raise (Wrong e) (*Checking for same dimension*)
+  | (Vector n1,Vector n2) -> if (n1=n2 && n1>0) then Vector n1 else raise (Wrong e) (*Checking for same dimension and empty vector*)
   | _ -> raise (Wrong e))
 
 | Inv e ->  (*Bool->Bool OR Scalar->Scalar OR Vector -> Vector*)
   (match (type_of e) with
   | Bool -> Bool
   | Scalar -> Scalar
-  | Vector n1 when n1>0 ->  Vector n1
+  | Vector n1 when n1>0 ->  Vector n1 (*Checking for empty vector*)
   |_ -> raise (Wrong e))
 
 | ScalProd (e1,e2) -> (* Bool*Bool -> Bool OR Scalar*Scalar-> Scalar OR Scalar*Vector->Vector*)
@@ -190,7 +189,8 @@ let rec type_of e = match e with
 (* (*-----------------
 DEFINITONAL INTERPRETER
 -------------------*)
-open Vectors;;
+let epsilon:float = 1e-06;; (*Epsilon for checking isZero*)
+
 
 type values = B of bool | S of float | V of vector;; (*values which are given by interpreter*)
 
