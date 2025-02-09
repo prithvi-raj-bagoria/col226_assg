@@ -186,11 +186,11 @@ let rec type_of e = match e with
   else if (type_of e2) <> (type_of e3) 
     then raise (Wrong e)
   else (type_of e2));;
+
 (* (*-----------------
 DEFINITONAL INTERPRETER
 -------------------*)
 let epsilon:float = 1e-06;; (*Epsilon for checking isZero*)
-
 
 type values = B of bool | S of float | V of vector;; (*values which are given by interpreter*)
 
