@@ -182,11 +182,7 @@ let rec type_of e = match e with
   | _-> raise (Wrong e))
 
 | Cond(e1,e2,e3) -> (*bool*'a*'a -> 'a*)
-  (if (type_of e1) <> Bool 
-    then raise (Wrong e)
-  else if (type_of e2) <> (type_of e3) 
-    then raise (Wrong e)
-  else (type_of e2));;
+  (if (type_of e1= Bool && (type_of e2) = (type_of e3)) then type_of e2 else raise (Wrong e));;
 
 (*-----------------
 DEFINITONAL INTERPRETER
