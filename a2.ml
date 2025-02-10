@@ -1,6 +1,8 @@
 open List;;
 open Float;;
 
+let epsilon:float = 1e-06;; (*Epsilon for checking isZero*)
+
 (*-----------------
 Adding Vectors module from assignment 1
 ------------------*)
@@ -37,7 +39,7 @@ let is_zero (v: vector) =
   else 
     let rec is_zero_tr v = match v with
       [] -> true
-    | x::xs -> if x=0. then is_zero_tr xs
+    | x::xs -> if (abs_float x ) < epsilon then is_zero_tr xs
               else false
     in is_zero_tr v;;
     
@@ -187,73 +189,63 @@ let rec type_of e = match e with
     then raise (Wrong e)
   else (type_of e2));;
 
-(* (*-----------------
+(*-----------------
 DEFINITONAL INTERPRETER
 -------------------*)
-let epsilon:float = 1e-06;; (*Epsilon for checking isZero*)
 
 type values = B of bool | S of float | V of vector;; (*values which are given by interpreter*)
-
-let myAdd (e1:expr) (e2:expr) : values  = match type_of e1,type_of e2,e1,e2 with
-| Bool ,Bool,F,F -> B false
-| Bool ,Bool,_,_ -> B true
-| Scalar,Scalar,ConstS s1,ConstS s2 -> S (s1 +. s2)
-| Vector n1 , Vector n2 , ConstV v1 , ConstV v2 when n1=n2 ->V (addv v1 v2)
-| _ -> raise (Wrong (Add(e1,e2)));;
-
-let myInv (e1:expr) : values  = match type_of e1,e1 with
-| Bool , F -> B true
-| Bool , T -> B false
-| Scalar , ConstS x -> S ((-1.) *. x)
-| Vector n1 , ConstV v -> V ( scale (-1.) v)
-| _ -> raise (Wrong (Inv(e1)));;
-
-let myScalProd (e1:expr) (e2:expr) : values  = match type_of e1,type_of e2,e1,e2 with
-| Bool ,Bool,T,T -> B true
-| Bool ,Bool,_,_ -> B false
-| Scalar,Scalar,ConstS s1,ConstS s2 -> S (s1 *. s2)
-| Vector n1 , Scalar , ConstV v1 , ConstS s1  ->V (scale s1 v1)
-| Scalar,Vector n1 , ConstS s1, ConstV v1  ->V (scale s1 v1)
-| _ -> raise (Wrong (Add(e1,e2)));;
-
-let myDotProd (e1:expr) (e2:expr) : values = match type_of e1,type_of e2 , e1 ,e2 with
-| Vector n1 , Vector n2 , ConstV v1 , ConstV v2 -> S (dot_prod v1 v2) 
-| _ -> raise (Wrong (DotProd(e1,e2)));;
-
-let myMag (e1: expr) : values =
-  match type_of e1, e1 with
-  | Scalar, ConstS x -> S (abs_float x)
-  | Vector _, ConstV v -> S (length v)
-  | _ -> raise (Wrong (Mag(e1)));;
-
-let myAngle (e1: expr) (e2: expr) : values = 
-  match type_of e1, type_of e2, e1, e2 with
-  | Vector n1, Vector n2, ConstV v1, ConstV v2 -> S (angle v1 v2)
-  | _ -> raise (Wrong (Angle(e1,e2)));;
-
-let myIsZero (e1: expr) : values =
-  match type_of e1, e1 with
-  | Bool, F -> B true
-  | Bool, T -> B false
-  | Scalar, ConstS x -> B (abs_float x < epsilon)
-  | Vector _, ConstV v -> B (List.for_all (fun a -> abs_float a < epsilon) v)
-  | _ -> raise (Wrong (IsZero(e1)));;
 
 let rec eval e = match e with
   | T -> B true
   | F -> B false
   | ConstS x -> S x
-  | ConstV v -> V v
-  | Add(e1, e2) -> myAdd e1 e2
-  | Inv(e1) -> myInv e1
-  | ScalProd(e1,e2) -> myScalProd e1 e2
-  | DotProd(e1,e2) -> myDotProd e1 e2
-  | Mag(e1) -> myMag e1
-  | Angle(e1,e2) -> myAngle e1 e2
-  | IsZero(e1) -> myIsZero e1
-  | Cond(e1,e2,e3) -> myCond e1 e2 e3
-  and myCond (e1: expr) (e2: expr) (e3: expr) : values =
-    match eval e1 with
-    | B true  -> eval e2
-    | B false -> eval e3
-    | _       -> raise (Wrong (Cond(e1,e2,e3)));; *)
+  | ConstV v -> if v <> [] then V v else raise (Wrong e)  (* Empty vector checked *)
+  | Add(e1, e2) -> let v1 = eval e1 in
+                   let v2 = eval e2 in
+                   (match (v1,v2) with
+                   | (B b1, B b2) -> B (b1 || b2) (*Bool OR*)
+                   | (S x1, S x2) -> S (x1 +. x2) (*Scalar Addition*)
+                   | (V v1, V v2) when (v1<>[] && v2 <>[])  && (dim v1 = dim v2)-> V (addv v1 v2) (*Vector addition using addv in Vectors module*)
+                   | _ -> raise (Wrong e))  
+  | Inv(e1) -> let v1 = eval e1 in
+                  (match v1 with
+                  | B b -> B (not b)  (*Negation of Bool*)
+                  | S x -> S (-.x)  (*Additive inverse of Scalar*)
+                  | V v when v<>[] -> V (inv v)  (*Additive inverse of Vector using inv in Vectors module*)
+                  | _ -> raise (Wrong e))
+  | ScalProd(e1, e2) -> let v1 = eval e1 in
+                        let v2 = eval e2 in
+                        (match (v1,v2) with
+                        | (B b1, B b2) -> B (b1 && b2) (*Bool AND*)
+                        | (S x1, S x2) -> S (x1 *. x2)  (*Scalar Multiplication*)
+                        | (S x, V v) when v<>[] -> V (scale x v) (*Scalar*Vector using scale in Vectors module*)
+                        | (V v, S x) when v<>[] -> V (scale x v) (*Vector*Scalar using scale in Vectors module*)
+                        | _ -> raise (Wrong e))
+  | DotProd(e1, e2) -> let v1 = eval e1 in
+                       let v2 = eval e2 in
+                       (match (v1,v2) with
+                       | (V v1, V v2) when (v1<>[] && v2<>[]) && (dim v1 = dim v2)-> S (dot_prod v1 v2) (* Dot product using dot_prod in Vectors module*)
+                       | _ -> raise (Wrong e))
+  | Mag(e1) -> let v1 = eval e1 in
+                (match v1 with
+                | S x -> S (abs_float x)
+                | V v when (v<>[]) -> S (length v)  (* using length in Vectors module*)
+                | _ -> raise (Wrong e))
+  | Angle(e1, e2) -> let v1 = eval e1 in
+                     let v2 = eval e2 in
+                     (match (v1,v2) with
+                     | (V v1, V v2) when (v1<>[] && v2<>[]) && (dim v1 = dim v2) && (is_zero v1 = false && is_zero v2 =false)-> S (angle v1 v2) (* using angle in Vectors module*)
+                     | _ -> raise (Wrong e))
+
+  | IsZero(e1) -> let v1 = eval e1 in
+                  (match v1 with
+                  | B b -> B (not b)
+                  | S x -> B (abs_float x < epsilon)  (* using epsilon instead of 0.0 *)
+                  | V v when v<>[] -> B (is_zero v) (* using is_zero from Vectors module*)
+                  | _ -> raise (Wrong e))
+  | Cond(e1, e2, e3) -> 
+    let v1 = eval e1 in
+    (match v1 with
+    | B true -> if (type_of e2) = (type_of e3) then eval e2 else raise (Wrong e)  (* Checking e2 and e2 have same types*)
+    | B false -> if (type_of e2) = (type_of e3) then eval e3 else raise (Wrong e)
+    | _ -> raise (Wrong e));;
