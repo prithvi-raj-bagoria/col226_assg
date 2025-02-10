@@ -1,5 +1,4 @@
 open A2;;
-
 (* 
 --------------- 
 TYPE CHECKING TESTS 
@@ -258,8 +257,6 @@ let%test "type_of_cond_different_types" =
 EVAL TESTING 
 --------------- 
 *)
-
-open A2
 
 (*----- 
   BASIC EVALUATION 

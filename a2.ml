@@ -1,5 +1,4 @@
 open List;;
-open Float;;
 
 let epsilon:float = 1e-06;; (*Epsilon for checking isZero*)
 (*-----------------
