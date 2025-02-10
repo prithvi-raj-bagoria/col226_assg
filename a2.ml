@@ -2,11 +2,10 @@ open List;;
 open Float;;
 
 let epsilon:float = 1e-06;; (*Epsilon for checking isZero*)
-
 (*-----------------
 Adding Vectors module from assignment 1
 ------------------*)
-(* Implementing Vectors and Matrices with help of float and lists*)
+
 module Vectors = struct 
 (* Type definition*)
 type vector = float list;;
@@ -104,7 +103,7 @@ let angle (v1: vector) (v2: vector) : float =
   in  acos cos_theta_clamped;;
 end;;
 
-open Vectors;;
+open Vectors;;  (*Opened Module Vectors*)
 
 (* Defining Types for our DSL*)
 type types =  Bool    (* boolean *)
