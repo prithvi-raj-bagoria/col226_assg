@@ -1,4 +1,3 @@
-#load "a2.cmo";;
 open A2;;
 
 let run_test name f =
@@ -12,6 +11,11 @@ let run_test name f =
 ;;
 
 let () =
+(*
+---------------
+TYPE CHECKING TESTS
+---------------
+*)
 
   (*-----
   BASIC TYPE CHECKING
